@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,26 +26,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @Tag(name = "Restaurant API", description = "맛집 등록 및 검색 API")
 public class RestaurantController {
-
     private final RestaurantService restaurantService;
 
-    /**
-     * 맛집 등록
-     * POST /api/restaurants
-     */
     @PostMapping
     @Operation(summary = "맛집 등록", description = "새로운 맛집을 등록합니다")
-    public ResponseEntity<Response> createRestaurant(
-            @Valid @RequestBody com.lime.mukbbomap.dto.RestaurantDto.CreateRequest request) {
+    public ResponseEntity<Response> createRestaurant(@Valid @RequestBody RestaurantDto.CreateRequest request) {
         log.info("POST /api/restaurants - Creating restaurant: {}", request.getName());
+
         Response response = restaurantService.createRestaurant(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /**
-     * 반경 기반 주변 맛집 검색
-     * GET /api/restaurants/nearby?latitude=37.5665&longitude=126.9780&radiusInMeters=1000&category=한식
-     */
     @GetMapping("/nearby")
     @Operation(summary = "주변 맛집 검색", description = "지정한 반경 내의 맛집을 검색합니다")
     public ResponseEntity<List<Response>> searchNearbyRestaurants(
@@ -68,38 +58,29 @@ public class RestaurantController {
         return ResponseEntity.ok(restaurants);
     }
 
-    /**
-     * 특정 맛집 조회
-     * GET /api/restaurants/{id}
-     */
     @GetMapping("/{id}")
     @Operation(summary = "맛집 상세 조회", description = "ID로 특정 맛집을 조회합니다")
     public ResponseEntity<Response> getRestaurant(@PathVariable Long id) {
         log.info("GET /api/restaurants/{}", id);
+
         Response response = restaurantService.getRestaurant(id);
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 전체 맛집 조회
-     * GET /api/restaurants
-     */
     @GetMapping
     @Operation(summary = "전체 맛집 조회", description = "등록된 모든 맛집을 조회합니다")
     public ResponseEntity<List<Response>> getAllRestaurants() {
         log.info("GET /api/restaurants - Getting all restaurants");
+
         List<Response> restaurants = restaurantService.getAllRestaurants();
         return ResponseEntity.ok(restaurants);
     }
 
-    /**
-     * 맛집 삭제
-     * DELETE /api/restaurants/{id}
-     */
     @DeleteMapping("/{id}")
     @Operation(summary = "맛집 삭제", description = "ID로 맛집을 삭제합니다")
     public ResponseEntity<Void> deleteRestaurant(@PathVariable Long id) {
         log.info("DELETE /api/restaurants/{}", id);
+
         restaurantService.deleteRestaurant(id);
         return ResponseEntity.noContent().build();
     }

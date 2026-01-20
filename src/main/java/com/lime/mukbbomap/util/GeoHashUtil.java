@@ -10,26 +10,16 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class GeoHashUtil {
-
     private static final int DEFAULT_PRECISION = 7;
 
-    /**
-     * 위도, 경도를 GeoHash로 변환
-     */
     public String encode(double latitude, double longitude) {
         return encode(latitude, longitude, DEFAULT_PRECISION);
     }
 
-    /**
-     * 위도, 경도를 지정한 정밀도의 GeoHash로 변환
-     */
     public String encode(double latitude, double longitude, int precision) {
         return GeoHash.geoHashStringWithCharacterPrecision(latitude, longitude, precision);
     }
 
-    /**
-     * GeoHash를 위도, 경도로 디코딩
-     */
     public WGS84Point decode(String geohash) {
         return GeoHash.fromGeohashString(geohash).getOriginatingPoint();
     }

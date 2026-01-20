@@ -1,13 +1,11 @@
 package com.lime.mukbbomap.service;
 
-
 import com.lime.mukbbomap.domain.Restaurant;
 import com.lime.mukbbomap.dto.RestaurantDto;
 import com.lime.mukbbomap.repository.RestaurantRepository;
 import com.lime.mukbbomap.util.GeoHashUtil;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +19,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Transactional
 public class RestaurantService {
-
     private final RestaurantRepository restaurantRepository;
     private final GeoHashUtil geoHashUtil;
 

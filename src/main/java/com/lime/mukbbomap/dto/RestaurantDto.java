@@ -18,13 +18,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 public class RestaurantDto {
-
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
     public static class CreateRequest {
-
         @NotBlank(message = "맛집 이름은 필수입니다")
         @Size(max = 100, message = "맛집 이름은 100자 이내여야 합니다")
         private String name;
@@ -107,7 +105,6 @@ public class RestaurantDto {
     @AllArgsConstructor
     @Builder
     public static class SearchRequest {
-
         @NotNull(message = "위도는 필수입니다")
         @DecimalMin(value = "-90.0", message = "위도는 -90 이상이어야 합니다")
         @DecimalMax(value = "90.0", message = "위도는 90 이하여야 합니다")
