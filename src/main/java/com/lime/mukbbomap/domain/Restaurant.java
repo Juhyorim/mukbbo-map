@@ -19,8 +19,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "restaurants", indexes = {
-        @Index(name = "idx_geohash", columnList = "geohash"),
-        @Index(name = "idx_latitude_longitude", columnList = "latitude, longitude")
+        @Index(name = "idx_geohash", columnList = "geohash")
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
