@@ -45,6 +45,17 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     // Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-webmvc-test
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test:4.0.2")
+
+    //search
+    // Source: https://mvnrepository.com/artifact/co.elastic.clients/elasticsearch-java
+    implementation("co.elastic.clients:elasticsearch-java:9.2.4")
+
+    // Apache HttpClient 5 (최신 버전)
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.3.1'
+
+    // Elasticsearch Low Level REST Client
+    implementation 'org.elasticsearch.client:elasticsearch-rest-client:8.11.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
 }
 
 tasks.named('test') {
