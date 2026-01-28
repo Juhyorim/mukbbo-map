@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/restaurants")
 @RequiredArgsConstructor
-@Tag(name = "Restaurant API", description = "맛집 등록 및 검색 API")
+@Tag(name = "Restaurant API", description = "맛집 등록/반경 검색 API")
 public class RestaurantController {
     private final RestaurantService restaurantService;
 
