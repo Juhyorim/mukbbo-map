@@ -10,6 +10,9 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -65,12 +68,18 @@ public class RestaurantController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
-    @Operation(summary = "전체 맛집 조회", description = "등록된 모든 맛집을 조회합니다")
-    public ResponseEntity<List<Response>> getAllRestaurants() {
-        log.info("GET /api/restaurants - Getting all restaurants");
+    @GetMapping("/restaurants")
+    public ResponseEntity<?> getRestaurants(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
 
-        List<Response> restaurants = restaurantService.getAllRestaurants();
+        // size를 50으로 제한
+        if (size > 50) {
+            size = 50;
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Response> restaurants = restaurantService.getAllRestaurants(pageable);
         return ResponseEntity.ok(restaurants);
     }
 

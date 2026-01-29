@@ -2,6 +2,7 @@ package com.lime.mukbbomap.service;
 
 import com.lime.mukbbomap.domain.Restaurant;
 import com.lime.mukbbomap.dto.RestaurantDto;
+import com.lime.mukbbomap.dto.RestaurantDto.Response;
 import com.lime.mukbbomap.repository.RestaurantRepository;
 import com.lime.mukbbomap.util.GeoHashUtil;
 import jakarta.transaction.Transactional;
@@ -12,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -116,12 +119,11 @@ public class RestaurantService {
     }
 
     /**
-     * 전체 맛집 조회
+     * 전체 맛집 조회 (페이지네이션)
      */
-    public List<RestaurantDto.Response> getAllRestaurants() {
-        return restaurantRepository.findAll().stream()
-                .map(RestaurantDto.Response::from)
-                .collect(Collectors.toList());
+    public Page<Response> getAllRestaurants(Pageable pageable) {
+        return restaurantRepository.findAll(pageable)
+                .map(RestaurantDto.Response::from);
     }
 
     /**
