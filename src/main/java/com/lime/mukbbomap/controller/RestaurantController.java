@@ -3,6 +3,7 @@ package com.lime.mukbbomap.controller;
 import com.lime.mukbbomap.dto.RestaurantDto;
 import com.lime.mukbbomap.dto.RestaurantDto.Response;
 import com.lime.mukbbomap.service.RestaurantService;
+import com.lime.mukbbomap.validator.RestaurantValidator;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,11 +28,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Restaurant API", description = "맛집 등록 및 검색 API")
 public class RestaurantController {
     private final RestaurantService restaurantService;
+    private final RestaurantValidator restaurantValidator;
 
     @PostMapping
     @Operation(summary = "맛집 등록", description = "새로운 맛집을 등록합니다")
     public ResponseEntity<Response> createRestaurant(@Valid @RequestBody RestaurantDto.CreateRequest request) {
-        log.info("POST /api/restaurants - Creating restaurant: {}", request.getName());
+        restaurantValidator.validateCreateRequest(request);
+        log.info("POST /api/restaurants - Creating restaurant: {}", request.name());
 
         Response response = restaurantService.createRestaurant(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -47,12 +50,7 @@ public class RestaurantController {
         log.info("GET /api/restaurants/nearby - lat: {}, lon: {}, radius: {}m",
                 latitude, longitude, radiusInMeters);
 
-        RestaurantDto.SearchRequest request = RestaurantDto.SearchRequest.builder()
-                .latitude(latitude)
-                .longitude(longitude)
-                .radiusInMeters(radiusInMeters)
-                .category(category)
-                .build();
+        RestaurantDto.SearchRequest request = new RestaurantDto.SearchRequest(latitude, longitude, radiusInMeters, category);
 
         List<RestaurantDto.Response> restaurants = restaurantService.searchNearbyRestaurants(request);
         return ResponseEntity.ok(restaurants);
