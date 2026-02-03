@@ -2,6 +2,7 @@ package com.lime.mukbbomap.service;
 
 import com.lime.mukbbomap.domain.Restaurant;
 import com.lime.mukbbomap.dto.RestaurantDto;
+import com.lime.mukbbomap.dto.RestaurantDto.Response;
 import com.lime.mukbbomap.repository.RestaurantRepository;
 import com.lime.mukbbomap.util.GeoHashUtil;
 import jakarta.transaction.Transactional;
@@ -12,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -28,21 +31,21 @@ public class RestaurantService {
     @Transactional
     @CacheEvict(value = "restaurants", allEntries = true)
     public RestaurantDto.Response createRestaurant(RestaurantDto.CreateRequest request) {
-        log.info("Creating restaurant: {}", request.getName());
+        log.info("Creating restaurant: {}", request.name());
 
         // GeoHash 생성
-        String geohash = geoHashUtil.encode(request.getLatitude(), request.getLongitude());
+        String geohash = geoHashUtil.encode(request.latitude(), request.longitude());
 
         Restaurant restaurant = Restaurant.builder()
-                .name(request.getName())
-                .category(request.getCategory())
-                .description(request.getDescription())
-                .address(request.getAddress())
-                .latitude(request.getLatitude())
-                .longitude(request.getLongitude())
+                .name(request.name())
+                .category(request.category())
+                .description(request.description())
+                .address(request.address())
+                .latitude(request.latitude())
+                .longitude(request.longitude())
                 .geohash(geohash)
-                .phoneNumber(request.getPhoneNumber())
-                .rating(request.getRating())
+                .phoneNumber(request.phoneNumber())
+                .rating(request.rating())
                 .build();
 
         Restaurant saved = restaurantRepository.save(restaurant);
@@ -59,14 +62,14 @@ public class RestaurantService {
             unless = "#result == null || #result.isEmpty()")
     public List<RestaurantDto.Response> searchNearbyRestaurants(RestaurantDto.SearchRequest request) {
         log.info("Searching restaurants - lat: {}, lon: {}, radius: {}m, category: {}",
-                request.getLatitude(), request.getLongitude(),
-                request.getRadiusInMeters(), request.getCategory());
+                request.latitude(), request.longitude(),
+                request.radiusInMeters(), request.category());
 
         // GeoHash prefix 생성 (중심점 + 8방향 이웃)
         List<String> searchPrefixes = geoHashUtil.getSearchPrefixes(
-                request.getLatitude(),
-                request.getLongitude(),
-                request.getRadiusInMeters()
+                request.latitude(),
+                request.longitude(),
+                request.radiusInMeters()
         );
 
         log.debug("Search prefixes: {}", searchPrefixes);
@@ -77,8 +80,8 @@ public class RestaurantService {
 
         // 카테고리 필터링만 수행
         List<RestaurantDto.Response> results = candidates.stream()
-                .filter(restaurant -> request.getCategory() == null ||
-                        restaurant.getCategory().equals(request.getCategory()))
+                .filter(restaurant -> request.category() == null ||
+                        restaurant.getCategory().equals(request.category()))
                 .map(RestaurantDto.Response::from)
                 .collect(Collectors.toList());
 
@@ -116,12 +119,11 @@ public class RestaurantService {
     }
 
     /**
-     * 전체 맛집 조회
+     * 전체 맛집 조회 (페이지네이션)
      */
-    public List<RestaurantDto.Response> getAllRestaurants() {
-        return restaurantRepository.findAll().stream()
-                .map(RestaurantDto.Response::from)
-                .collect(Collectors.toList());
+    public Page<Response> getAllRestaurants(Pageable pageable) {
+        return restaurantRepository.findAll(pageable)
+                .map(RestaurantDto.Response::from);
     }
 
     /**

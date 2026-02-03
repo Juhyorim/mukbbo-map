@@ -38,25 +38,24 @@ class RestaurantServiceTest {
     @DisplayName("맛집 등록 성공")
     void createRestaurant() {
         // given
-        RestaurantDto.CreateRequest request = RestaurantDto.CreateRequest.builder()
-                .name("테스트 맛집")
-                .category("한식")
-                .description("맛있는 한식")
-                .address("서울 강남구 테스트로 123")
-                .latitude(37.4979)
-                .longitude(127.0276)
-                .phoneNumber("02-1234-5678")
-                .rating(4.5)
-                .build();
-
+        RestaurantDto.CreateRequest request = new RestaurantDto.CreateRequest(
+                "테스트 맛집",
+                "한식",
+                "맛있는 한식",
+                "서울 강남구 테스트로 123",
+                37.4979,
+                127.0276,
+                "02-1234-5678",
+                4.5
+        );
         // when
         RestaurantDto.Response response = restaurantService.createRestaurant(request);
 
         // then
-        assertThat(response.getId()).isNotNull();
-        assertThat(response.getName()).isEqualTo("테스트 맛집");
-        assertThat(response.getGeohash()).isNotNull();
-        assertThat(response.getGeohash()).startsWith("wydm");
+        assertThat(response.id()).isNotNull();
+        assertThat(response.name()).isEqualTo("테스트 맛집");
+        assertThat(response.geohash()).isNotNull();
+        assertThat(response.geohash()).startsWith("wydm");
     }
 
     @Test
@@ -67,11 +66,12 @@ class RestaurantServiceTest {
         createTestRestaurant("역삼역 맛집", 37.5009, 127.0341, "양식");
         createTestRestaurant("선릉역 맛집", 37.5045, 127.0490, "일식");
 
-        RestaurantDto.SearchRequest request = RestaurantDto.SearchRequest.builder()
-                .latitude(37.4979)
-                .longitude(127.0276)
-                .radiusInMeters(1000)
-                .build();
+        RestaurantDto.SearchRequest request = new RestaurantDto.SearchRequest(
+                37.4979,
+                127.0276,
+                1000,
+                null
+        );
 
         // when
         List<Response> results = restaurantService.searchNearbyRestaurants(request);
@@ -89,18 +89,18 @@ class RestaurantServiceTest {
         createTestRestaurant("한식당2", 37.4985, 127.0280, "한식");
         createTestRestaurant("양식당", 37.4975, 127.0270, "양식");
 
-        RestaurantDto.SearchRequest request = RestaurantDto.SearchRequest.builder()
-                .latitude(37.4979)
-                .longitude(127.0276)
-                .radiusInMeters(1000)
-                .category("한식")
-                .build();
+        RestaurantDto.SearchRequest request = new RestaurantDto.SearchRequest(
+                37.4979,
+                127.0276,
+                1000,
+                "한식"
+        );
 
         // when
         List<RestaurantDto.Response> results = restaurantService.searchNearbyRestaurants(request);
 
         // then
-        assertThat(results).allMatch(r -> r.getCategory().equals("한식"));
+        assertThat(results).allMatch(r -> r.category().equals("한식"));
     }
 
     @Test
@@ -110,23 +110,23 @@ class RestaurantServiceTest {
         RestaurantDto.Response created = createTestRestaurant("삭제될 맛집", 37.4979, 127.0276, "한식");
 
         // when
-        restaurantService.deleteRestaurant(created.getId());
+        restaurantService.deleteRestaurant(created.id());
 
         // then
-        assertThat(restaurantRepository.findById(created.getId())).isEmpty();
+        assertThat(restaurantRepository.findById(created.id())).isEmpty();
     }
 
     private RestaurantDto.Response createTestRestaurant(String name, double lat, double lon, String category) {
-        RestaurantDto.CreateRequest request = RestaurantDto.CreateRequest.builder()
-                .name(name)
-                .category(category)
-                .description("테스트 설명")
-                .address("서울 강남구 테스트로 123")
-                .latitude(lat)
-                .longitude(lon)
-                .phoneNumber("02-1234-5678")
-                .rating(4.0)
-                .build();
+        RestaurantDto.CreateRequest request = new RestaurantDto.CreateRequest(
+                name,
+                category,
+                "테스트 설명",
+                "서울 강남구 테스트로 123",
+                lat,
+                lon,
+                "02-1234-5678",
+                4.0
+        );
         return restaurantService.createRestaurant(request);
     }
 }

@@ -50,16 +50,16 @@ class RestaurantControllerTest {
     @DisplayName("POST /api/restaurants - 맛집 등록 성공")
     void createRestaurant() throws Exception {
         // given
-        RestaurantDto.CreateRequest request = RestaurantDto.CreateRequest.builder()
-                .name("테스트 맛집")
-                .category("한식")
-                .description("맛있는 음식")
-                .address("서울 강남구 테스트로 123")
-                .latitude(37.4979)
-                .longitude(127.0276)
-                .phoneNumber("02-1234-5678")
-                .rating(4.5)
-                .build();
+        RestaurantDto.CreateRequest request = new RestaurantDto.CreateRequest(
+                "테스트 맛집",
+                "한식",
+                "맛있는 음식",
+                "서울 강남구 테스트로 123",
+                37.4979,
+                127.0276,
+                "02-1234-5678",
+                4.5
+        );
 
         // when & then
         mockMvc.perform(post("/api/restaurants")
@@ -79,11 +79,16 @@ class RestaurantControllerTest {
     @DisplayName("POST /api/restaurants - 유효성 검증 실패")
     void createRestaurant_validationFail() throws Exception {
         // given - name이 없음
-        RestaurantDto.CreateRequest request = RestaurantDto.CreateRequest.builder()
-                .category("한식")
-                .latitude(37.4979)
-                .longitude(127.0276)
-                .build();
+        RestaurantDto.CreateRequest request = new RestaurantDto.CreateRequest(
+                "",
+                "한식",
+                "테스트 설명",
+                "서울 강남구 테스트로 123",
+                37.4979,
+                127.0276,
+                "02-1234-5678",
+                4.0
+        );
 
         // when & then
         mockMvc.perform(post("/api/restaurants")
@@ -157,16 +162,16 @@ class RestaurantControllerTest {
     }
 
     private Long createTestRestaurant(String name, double lat, double lon, String category) throws Exception {
-        RestaurantDto.CreateRequest request = RestaurantDto.CreateRequest.builder()
-                .name(name)
-                .category(category)
-                .description("테스트 설명")
-                .address("서울 강남구 테스트로 123")
-                .latitude(lat)
-                .longitude(lon)
-                .phoneNumber("02-1234-5678")
-                .rating(4.0)
-                .build();
+        RestaurantDto.CreateRequest request = new RestaurantDto.CreateRequest(
+                name,
+                category,
+                "테스트 설명",
+                "서울 강남구 테스트로 123",
+                lat,
+                lon,
+                "02-1234-5678",
+                4.0
+        );
 
         String response = mockMvc.perform(post("/api/restaurants")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -176,6 +181,6 @@ class RestaurantControllerTest {
                 .getContentAsString();
 
         RestaurantDto.Response created = objectMapper.readValue(response, RestaurantDto.Response.class);
-        return created.getId();
+        return created.id();
     }
 }
