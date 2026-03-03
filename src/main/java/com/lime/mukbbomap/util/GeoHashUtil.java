@@ -25,6 +25,7 @@ public class GeoHashUtil {
     }
 
     /**
+     * [지구반지름 계산 로직]
      * 두 지점 간의 거리 계산 (Haversine formula - 미터 단위)
      */
     public double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
@@ -57,28 +58,17 @@ public class GeoHashUtil {
     }
 
     /**
-     * 중심점을 기준으로 이웃 GeoHash 영역 포함한 검색 영역 리턴
-     * (현재 영역 + 8방향 이웃 = 총 9개 영역)
+     * center 와 인접한 Geohash영역 리스트로 리턴
      */
     public List<String> getNeighborGeohashes(String centerGeohash) {
-        List<String> neighbors = new ArrayList<>();
-
         GeoHash center = GeoHash.fromGeohashString(centerGeohash);
+        GeoHash[] adjacents = center.getAdjacent();
+
+        List<String> neighbors = new ArrayList<>(adjacents.length + 1);
         neighbors.add(centerGeohash);
-
-        // 8방향 이웃 추가
-        neighbors.add(center.getNorthernNeighbour().toBase32());
-        neighbors.add(center.getSouthernNeighbour().toBase32());
-        neighbors.add(center.getEasternNeighbour().toBase32());
-        neighbors.add(center.getWesternNeighbour().toBase32());
-
-        GeoHash northern = center.getNorthernNeighbour();
-        neighbors.add(northern.getEasternNeighbour().toBase32());
-        neighbors.add(northern.getWesternNeighbour().toBase32());
-
-        GeoHash southern = center.getSouthernNeighbour();
-        neighbors.add(southern.getEasternNeighbour().toBase32());
-        neighbors.add(southern.getWesternNeighbour().toBase32());
+        for (GeoHash adj : adjacents) {
+            neighbors.add(adj.toBase32());
+        }
 
         return neighbors;
     }
