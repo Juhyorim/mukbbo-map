@@ -55,7 +55,8 @@ public class RestaurantController {
 
         RestaurantDto.SearchRequest request = new RestaurantDto.SearchRequest(latitude, longitude, radiusInMeters, category);
 
-        List<RestaurantDto.Response> restaurants = restaurantService.searchNearbyRestaurants(request);
+//        List<RestaurantDto.Response> restaurants = restaurantService.searchNearbyRestaurants(request);
+        List<RestaurantDto.Response> restaurants = restaurantService.searchBySpatialIndex(request);
         return ResponseEntity.ok(restaurants);
     }
 
