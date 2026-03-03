@@ -7,7 +7,9 @@ import com.lime.mukbbomap.repository.RestaurantRepository;
 import com.lime.mukbbomap.util.GeoHashUtil;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,32 +63,26 @@ public class RestaurantService {
             key = "#request.latitude + ':' + #request.longitude + ':' + #request.radiusInMeters + ':' + (#request.category != null ? #request.category : 'all')",
             unless = "#result == null || #result.isEmpty()")
     public List<RestaurantDto.Response> searchNearbyRestaurants(RestaurantDto.SearchRequest request) {
-        log.info("Searching restaurants - lat: {}, lon: {}, radius: {}m, category: {}",
-                request.latitude(), request.longitude(),
-                request.radiusInMeters(), request.category());
+        double lat = request.latitude();
+        double lon = request.longitude();
+        int radius = request.radiusInMeters();
 
-        // GeoHash prefix 생성 (중심점 + 8방향 이웃)
-        List<String> searchPrefixes = geoHashUtil.getSearchPrefixes(
-                request.latitude(),
-                request.longitude(),
-                request.radiusInMeters()
-        );
-
-        log.debug("Search prefixes: {}", searchPrefixes);
-
-        // GeoHash prefix로 DB 조회 (9개 영역)
+        List<String> searchPrefixes = geoHashUtil.getSearchPrefixes(lat, lon, radius);
         List<Restaurant> candidates = findByPrefixes(searchPrefixes);
-        log.debug("Found {} candidate restaurants", candidates.size());
 
-        // 카테고리 필터링만 수행
-        List<RestaurantDto.Response> results = candidates.stream()
-                .filter(restaurant -> request.category() == null ||
-                        restaurant.getCategory().equals(request.category()))
-                .map(RestaurantDto.Response::from)
+        return candidates.stream()
+                .filter(r -> request.category() == null ||
+                        r.getCategory().equals(request.category()))
+                // GeoHash 후보 → 실제 거리 검증
+                .map(r -> {
+                    double distance = geoHashUtil.calculateDistance(
+                            lat, lon, r.getLatitude(), r.getLongitude());
+                    return Map.entry(r, distance);
+                })
+                .filter(entry -> entry.getValue() <= radius)
+                .sorted(Comparator.comparingDouble(Map.Entry::getValue))
+                .map(entry -> RestaurantDto.Response.from(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
-
-        log.info("Found {} restaurants within search area", results.size());
-        return results;
     }
 
     /**
