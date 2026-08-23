@@ -37,11 +37,14 @@ public class RestaurantQuadTreeIndex {
     private static final BoundingBox KOREA_BOUNDS =
             new BoundingBox(128.0, 36.0, 4.5, 3.5);
     private static final int NODE_CAPACITY = 16;
+    // 루트가 전국(약 1000km)이므로 깊이 20이면 셀폭이 약 1m 수준까지 내려간다.
+    // 이 지점에 도달하면 더 쪼개지 않고 리프에 그대로 담아 무한 재귀를 막는다.
+    private static final int MAX_DEPTH = 20;
 
     private final RestaurantRepository restaurantRepository;
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private QuadTree<Restaurant> tree = new QuadTree<>(KOREA_BOUNDS, NODE_CAPACITY);
+    private QuadTree<Restaurant> tree = new QuadTree<>(KOREA_BOUNDS, NODE_CAPACITY, MAX_DEPTH);
     private final Map<Long, GeoPoint<Restaurant>> byId = new HashMap<>();
 
     public RestaurantQuadTreeIndex(RestaurantRepository restaurantRepository) {
@@ -58,7 +61,7 @@ public class RestaurantQuadTreeIndex {
     public void rebuild(List<Restaurant> restaurants) {
         lock.writeLock().lock();
         try {
-            QuadTree<Restaurant> fresh = new QuadTree<>(KOREA_BOUNDS, NODE_CAPACITY);
+            QuadTree<Restaurant> fresh = new QuadTree<>(KOREA_BOUNDS, NODE_CAPACITY, MAX_DEPTH);
             Map<Long, GeoPoint<Restaurant>> freshIndex = new HashMap<>();
             int skipped = 0;
             for (Restaurant r : restaurants) {

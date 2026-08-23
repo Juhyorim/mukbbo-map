@@ -14,6 +14,11 @@ import java.util.List;
  * <p>이 클래스는 <b>스레드 안전하지 않다.</b> 동시 접근 제어는 이 트리를 감싸는
  * {@link RestaurantQuadTreeIndex}에서 읽기/쓰기 락으로 처리한다.
  *
+ * <p><b>최대 깊이 상한(maxDepth).</b> 좌표가 (거의) 동일한 점이 {@code capacity}를
+ * 넘으면 아무리 분할해도 같은 자식으로만 몰려 무한 재귀에 빠진다(같은 건물의 여러 맛집 등).
+ * 이를 막기 위해 {@code maxDepth}에 도달한 노드는 더 이상 분할하지 않고, capacity를
+ * 초과하더라도 그 리프에 점을 그대로 담는다. 이 상한이 사실상 "최소 셀 크기"를 정한다.
+ *
  * @param <T> 각 좌표에 붙는 값의 타입
  */
 public class QuadTree<T> {
@@ -24,17 +29,30 @@ public class QuadTree<T> {
 
     private final BoundingBox boundary;
     private final int capacity;
+    private final int maxDepth;
+    private final int depth;
     private final List<GeoPoint<T>> points = new ArrayList<>();
 
     private boolean divided = false;
     private QuadTree<T> nw, ne, sw, se;
 
-    public QuadTree(BoundingBox boundary, int capacity) {
+    /** 루트 노드 생성. depth는 0에서 시작한다. */
+    public QuadTree(BoundingBox boundary, int capacity, int maxDepth) {
+        this(boundary, capacity, maxDepth, 0);
+    }
+
+    /** 자식 노드 생성용(내부). */
+    private QuadTree(BoundingBox boundary, int capacity, int maxDepth, int depth) {
         if (capacity < 1) {
             throw new IllegalArgumentException("capacity는 1 이상이어야 합니다.");
         }
+        if (maxDepth < 1) {
+            throw new IllegalArgumentException("maxDepth는 1 이상이어야 합니다.");
+        }
         this.boundary = boundary;
         this.capacity = capacity;
+        this.maxDepth = maxDepth;
+        this.depth = depth;
     }
 
     // ----------------------------------------------------------------- 삽입
@@ -46,7 +64,9 @@ public class QuadTree<T> {
         if (!boundary.contains(p.lat(), p.lng())) {
             return false;
         }
-        if (!divided && points.size() < capacity) {
+        // 여유가 있거나, 최대 깊이에 도달했으면 이 노드에 담는다.
+        // (깊이 한계에서는 capacity를 초과해도 더 쪼개지 않고 그대로 쌓는다 → 무한 재귀 방지)
+        if (!divided && (points.size() < capacity || depth >= maxDepth)) {
             points.add(p);
             return true;
         }
@@ -57,10 +77,11 @@ public class QuadTree<T> {
     }
 
     private void subdivide() {
-        nw = new QuadTree<>(boundary.quadrant(false, true), capacity);
-        ne = new QuadTree<>(boundary.quadrant(true, true), capacity);
-        sw = new QuadTree<>(boundary.quadrant(false, false), capacity);
-        se = new QuadTree<>(boundary.quadrant(true, false), capacity);
+        int childDepth = depth + 1;
+        nw = new QuadTree<>(boundary.quadrant(false, true), capacity, maxDepth, childDepth);
+        ne = new QuadTree<>(boundary.quadrant(true, true), capacity, maxDepth, childDepth);
+        sw = new QuadTree<>(boundary.quadrant(false, false), capacity, maxDepth, childDepth);
+        se = new QuadTree<>(boundary.quadrant(true, false), capacity, maxDepth, childDepth);
         divided = true;
 
         for (GeoPoint<T> existing : points) {
